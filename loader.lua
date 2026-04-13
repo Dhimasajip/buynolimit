@@ -67,6 +67,38 @@ ProximityPromptService.PromptShown:Connect(function(prompt)
     end
 end)
 
+-- [[ AUTO SPEED COIL (ANTI-SPAM) ]]
+task.spawn(function()
+    while true do
+        local char = player.Character
+        local backpack = player:FindFirstChildOfClass("Backpack")
+        
+        if char and backpack then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            local holdingCoil = false
+            
+            -- Cek apakah sudah pegang coil
+            for _, tool in ipairs(char:GetChildren()) do
+                if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "speed") or string.find(string.lower(tool.Name), "coil")) then
+                    holdingCoil = true
+                    break
+                end
+            end
+
+            -- Jika belum pegang, baru equip
+            if not holdingCoil then
+                for _, tool in ipairs(backpack:GetChildren()) do
+                    if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "speed") or string.find(string.lower(tool.Name), "coil")) then
+                        hum:EquipTool(tool)
+                        break
+                    end
+                end
+            end
+        end
+        task.wait(5)
+    end
+end)
+
 -- [[ ANTI-AFK ]]
 task.spawn(function()
     while true do
