@@ -1,4 +1,4 @@
--- [[ KAMIAPA MAIN SCRIPT - COORDINATE FIXED ]]
+-- [[ KAMIAPA MAIN SCRIPT - COORDINATE UPDATE ]]
 if getgenv().__KAMI_APA_MAIN_RUNNING then return end
 getgenv().__KAMI_APA_MAIN_RUNNING = true
 
@@ -11,13 +11,14 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local player = Players.LocalPlayer
 
 -- [[ KOORDINAT TITIK AMAN BARU ]]
--- Menggunakan data dari image_9ac102.png
-local HOME_POS = Vector3.new(-410.873046875, -6.403680801391602, -86.57219696044922) 
+-- Diperbarui berdasarkan image_9ac941.png
+local HOME_POS = Vector3.new(-409.9199523925781, -6.403680801391602, -93.44242095947266) 
 local RETURN_DISTANCE = 2 
 
 -- [[ FUNGSI DETEKSI TARGET ]]
 local function isTarget(model)
     if not getgenv().TARGET_LIST then return false end
+    
     local name = model:GetAttribute("Index") or model.Name
     local billboard = model:FindFirstChildOfClass("BillboardGui")
     local textLabel = billboard and billboard:FindFirstChildOfClass("TextLabel")
@@ -32,7 +33,7 @@ local function isTarget(model)
     return false
 end
 
--- [[ STAY AT HOME - TETAP DI TITIK BARU ]]
+-- [[ STAY AT HOME & RETURN ON HIT ]]
 task.spawn(function()
     local lastHealth = 100
     while true do
@@ -41,7 +42,7 @@ task.spawn(function()
         local root = char and char:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 then
-            -- Ini yang mengatur agar karakter tetap di koordinat baru
+            -- Selalu mengarah ke koordinat baru
             local targetPos = Vector3.new(HOME_POS.X, root.Position.Y, HOME_POS.Z)
             
             if hum.Health < lastHealth then
@@ -75,4 +76,4 @@ task.spawn(function()
     end
 end)
 
-print("KAMIAPA: Koordinat Baru Berhasil Diterapkan!")
+print("KAMIAPA: Koordinat Berhasil Diperbarui ke Titik Baru!")
