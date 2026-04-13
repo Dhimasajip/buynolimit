@@ -1,4 +1,4 @@
--- [[ KAMIAPA MAIN SCRIPT - COORDINATE UPDATE ]]
+-- [[ KAMIAPA MAIN SCRIPT - COORDINATE & SPEED COIL ]]
 if getgenv().__KAMI_APA_MAIN_RUNNING then return end
 getgenv().__KAMI_APA_MAIN_RUNNING = true
 
@@ -18,7 +18,6 @@ local RETURN_DISTANCE = 2
 -- [[ FUNGSI DETEKSI TARGET ]]
 local function isTarget(model)
     if not getgenv().TARGET_LIST then return false end
-    
     local name = model:GetAttribute("Index") or model.Name
     local billboard = model:FindFirstChildOfClass("BillboardGui")
     local textLabel = billboard and billboard:FindFirstChildOfClass("TextLabel")
@@ -42,13 +41,10 @@ task.spawn(function()
         local root = char and char:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 then
-            -- Selalu mengarah ke koordinat baru dari image_0d073d.png
             local targetPos = Vector3.new(HOME_POS.X, root.Position.Y, HOME_POS.Z)
-            
             if hum.Health < lastHealth then
                 root.CFrame = CFrame.new(targetPos)
             end
-
             if (root.Position - targetPos).Magnitude >= RETURN_DISTANCE then
                 hum:MoveTo(targetPos)
             end
@@ -67,7 +63,7 @@ ProximityPromptService.PromptShown:Connect(function(prompt)
     end
 end)
 
--- [[ AUTO SPEED COIL (ANTI-SPAM) ]]
+-- [[ FITUR AUTO SPEED COIL ]]
 task.spawn(function()
     while true do
         local char = player.Character
@@ -77,7 +73,7 @@ task.spawn(function()
             local hum = char:FindFirstChildOfClass("Humanoid")
             local holdingCoil = false
             
-            -- Cek apakah sudah pegang coil
+            -- Cek apakah sudah pegang coil di tangan
             for _, tool in ipairs(char:GetChildren()) do
                 if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "speed") or string.find(string.lower(tool.Name), "coil")) then
                     holdingCoil = true
@@ -85,7 +81,7 @@ task.spawn(function()
                 end
             end
 
-            -- Jika belum pegang, baru equip
+            -- Jika belum pegang, ambil dari tas
             if not holdingCoil then
                 for _, tool in ipairs(backpack:GetChildren()) do
                     if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "speed") or string.find(string.lower(tool.Name), "coil")) then
@@ -95,7 +91,7 @@ task.spawn(function()
                 end
             end
         end
-        task.wait(5)
+        task.wait(5) -- Cek setiap 5 detik
     end
 end)
 
@@ -108,4 +104,4 @@ task.spawn(function()
     end
 end)
 
-print("KAMIAPA: Koordinat Berhasil Diperbarui ke Titik -68.40!")
+print("KAMIAPA: Koordinat Fixed & Auto Speed Coil Aktif!")
