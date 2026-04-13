@@ -11,8 +11,8 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local player = Players.LocalPlayer
 
 -- [[ KOORDINAT TITIK AMAN BARU ]]
--- Diperbarui berdasarkan image_9ac941.png
-local HOME_POS = Vector3.new(-409.9199523925781, -6.403680801391602, -93.44242095947266) 
+-- Diperbarui berdasarkan image_0d073d.png
+local HOME_POS = Vector3.new(-410.2870788574219, -6.403680801391602, -68.40277099609375) 
 local RETURN_DISTANCE = 2 
 
 -- [[ FUNGSI DETEKSI TARGET ]]
@@ -42,7 +42,7 @@ task.spawn(function()
         local root = char and char:FindFirstChild("HumanoidRootPart")
 
         if hum and root and hum.Health > 0 then
-            -- Selalu mengarah ke koordinat baru
+            -- Selalu mengarah ke koordinat baru dari image_0d073d.png
             local targetPos = Vector3.new(HOME_POS.X, root.Position.Y, HOME_POS.Z)
             
             if hum.Health < lastHealth then
@@ -76,4 +76,4 @@ task.spawn(function()
     end
 end)
 
-print("KAMIAPA: Koordinat Berhasil Diperbarui ke Titik Baru!")
+print("KAMIAPA: Koordinat Berhasil Diperbarui ke Titik -68.40!")
