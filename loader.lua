@@ -1,74 +1,71 @@
--- [[ KAMIAPA MAIN SCRIPT - MINIMALIST VERSION ]]
-repeat task.wait() until game:IsLoaded()
+-- KAMIAPA: ABSOLUTE ZERO VERSION
+task.wait(0.5)
 
--- Simpan servis ke variabel lokal secara langsung
-local p = game:GetService("Players").LocalPlayer
-local vu = game:GetService("VirtualUser")
-local pps = game:GetService("ProximityPromptService")
+local function START_SCRIPT()
+    -- Cek ketersediaan servis dasar secara aman
+    local success, Players = pcall(game.GetService, game, "Players")
+    if not success or not Players then return end
+    
+    local lp = Players.LocalPlayer
+    local vu = game:GetService("VirtualUser")
+    local pps = game:GetService("ProximityPromptService")
 
--- KOORDINAT (Diperbarui)
-local HP = Vector3.new(-410.2870788574219, -6.403680801391602, -68.40277099609375) [cite: 1]
-local RD = 2 [cite: 1]
+    -- KOORDINAT TETAP
+    local HP = Vector3.new(-410.2870788574219, -6.403680801391602, -68.40277099609375)
+    local RD = 2
 
--- ANTI-AFK (Metode paling dasar)
-p.Idled:Connect(function()
-    vu:CaptureController()
-    vu:ClickButton2(Vector2.new(0,0))
-end)
-
--- STAY AT HOME
-task.spawn(function()
-    local lh = 100
-    while task.wait(0.2) do
-        local c = p.Character
-        local h = c and c:FindFirstChildOfClass("Humanoid")
-        local r = c and c:FindFirstChild("HumanoidRootPart")
-        if h and r and h.Health > 0 then
-            local tp = Vector3.new(HP.X, r.Position.Y, HP.Z)
-            if h.Health < lh then r.CFrame = CFrame.new(tp) end [cite: 3, 4]
-            if (r.Position - tp).Magnitude >= RD then h:MoveTo(tp) end [cite: 4]
-            lh = h.Health
-        end
-    end
-end)
-
--- AUTO PURCHASE (Target detection disatukan agar tidak error nil)
-pps.PromptShown:Connect(function(pr)
-    local m = pr:FindFirstAncestorOfClass("Model")
-    if m and getgenv().TARGET_LIST then [cite: 5]
-        local found = false
-        local n = string.lower(m:GetAttribute("Index") or m.Name)
-        for _, t in ipairs(getgenv().TARGET_LIST) do
-            if string.find(n, string.lower(t)) then found = true break end [cite: 2]
-        end
-        
-        if found then
-            task.wait(0.15)
-            pr:InputHoldBegin()
-            task.wait(pr.HoldDuration + 0.01)
-            pr:InputHoldEnd()
-        end
-    end
-end)
-
--- AUTO SPEED COIL
-task.spawn(function()
-    while task.wait(5) do
-        local c = p.Character
-        local b = p:FindFirstChildOfClass("Backpack")
-        if c and b then
-            local h = c:FindFirstChildOfClass("Humanoid")
-            local coil = c:FindFirstChild("Speed Coil") or c:FindFirstChild("Coil")
-            if not coil and h then
-                for _, t in ipairs(b:GetChildren()) do
-                    if t:IsA("Tool") and (string.find(string.lower(t.Name), "speed") or string.find(string.lower(t.Name), "coil")) then [cite: 8]
-                        h:EquipTool(t) [cite: 8]
-                        break
-                    end
+    -- STAY AT HOME & RETURN
+    task.spawn(function()
+        local lh = 100
+        while task.wait(0.5) do
+            pcall(function()
+                local char = lp.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                local root = char and char:FindFirstChild("HumanoidRootPart")
+                
+                if hum and root and hum.Health > 0 then
+                    local targetPos = Vector3.new(HP.X, root.Position.Y, HP.Z)
+                    if hum.Health < lh then root.CFrame = CFrame.new(targetPos) end
+                    if (root.Position - targetPos).Magnitude >= RD then hum:MoveTo(targetPos) end
+                    lh = hum.Health
                 end
-            end
+            end)
         end
-    end
-end)
+    end)
 
-print("KAMIAPA: Minimalist Version Active") [cite: 10]
+    -- AUTO PURCHASE (SIGNAL BASED)
+    if pps then
+        pps.PromptShown:Connect(function(prompt)
+            pcall(function()
+                local model = prompt:FindFirstAncestorOfClass("Model")
+                local targets = getgenv and getgenv().TARGET_LIST or {}
+                local name = string.lower(model.Name)
+                
+                local isTarget = false
+                for _, t in ipairs(targets) do
+                    if string.find(name, string.lower(t)) then isTarget = true break end
+                end
+
+                if isTarget then
+                    task.wait(0.2)
+                    prompt:InputHoldBegin()
+                    task.wait(prompt.HoldDuration + 0.02)
+                    prompt:InputHoldEnd()
+                end
+            end)
+        end)
+    end
+
+    -- ANTI-AFK
+    lp.Idled:Connect(function()
+        pcall(function()
+            vu:CaptureController()
+            vu:ClickButton2(Vector2.new(0,0))
+        end)
+    end)
+
+    print("KAMIAPA: Running on Safe Mode")
+end
+
+-- Jalankan dengan pcall agar tidak ada error merah di console
+pcall(START_SCRIPT)
