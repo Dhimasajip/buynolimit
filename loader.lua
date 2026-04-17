@@ -1,97 +1,68 @@
--- [[ KAMIAPA MAIN SCRIPT - COORDINATE & SPEED COIL ]]
--- Menggunakan variabel lokal sederhana agar tidak memicu nil error di awal [cite: 1]
-local RUNNING_KEY = "KAMI_APA_ACTIVE"
-if _G[RUNNING_KEY] then return end
-_G[RUNNING_KEY] = true
+-- [[ KAMIAPA MAIN SCRIPT - MINIMALIST VERSION ]]
+repeat task.wait() until game:IsLoaded()
 
-task.wait(1)
+-- Simpan servis ke variabel lokal secara langsung
+local p = game:GetService("Players").LocalPlayer
+local vu = game:GetService("VirtualUser")
+local pps = game:GetService("ProximityPromptService")
 
--- Proteksi pemanggilan servis agar tidak nil [cite: 2]
-local function getService(name)
-    local s, res = pcall(game.GetService, game, name)
-    return s and res or nil
-end
+-- KOORDINAT (Diperbarui)
+local HP = Vector3.new(-410.2870788574219, -6.403680801391602, -68.40277099609375) [cite: 1]
+local RD = 2 [cite: 1]
 
-local Players = getService("Players")
-local VirtualUser = getService("VirtualUser")
-local ProximityPromptService = getService("ProximityPromptService")
-local player = Players and Players.LocalPlayer
+-- ANTI-AFK (Metode paling dasar)
+p.Idled:Connect(function()
+    vu:CaptureController()
+    vu:ClickButton2(Vector2.new(0,0))
+end)
 
--- [[ KOORDINAT TITIK AMAN ]]
--- Diperbarui berdasarkan image_0d073d.png [cite: 1]
-local HOME_POS = Vector3.new(-410.2870788574219, -6.403680801391602, -68.40277099609375) 
-local RETURN_DISTANCE = 2 
-
--- [[ FUNGSI DETEKSI TARGET ]]
-local function isTarget(model)
-    local targets = getgenv and getgenv().TARGET_LIST or {}
-    local name = model:GetAttribute("Index") or model.Name
-    local billboard = model:FindFirstChildOfClass("BillboardGui")
-    local textLabel = billboard and billboard:FindFirstChildOfClass("TextLabel")
-    local screenName = textLabel and textLabel.Text or ""
-
-    for _, targetName in ipairs(targets) do
-        if string.find(string.lower(name), string.lower(targetName)) or 
-           string.find(string.lower(screenName), string.lower(targetName)) then
-            return true
-        end
-    end
-    return false
-end
-
--- [[ STAY AT HOME & RETURN ON HIT ]]
+-- STAY AT HOME
 task.spawn(function()
-    local lastHealth = 100
+    local lh = 100
     while task.wait(0.2) do
-        if not player or not player.Character then continue end
-        local char = player.Character
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        local root = char:FindFirstChild("HumanoidRootPart")
-
-        if hum and root and hum.Health > 0 then
-            local targetPos = Vector3.new(HOME_POS.X, root.Position.Y, HOME_POS.Z)
-            if hum.Health < lastHealth then
-                root.CFrame = CFrame.new(targetPos) [cite: 3]
-            end
-            if (root.Position - targetPos).Magnitude >= RETURN_DISTANCE then
-                hum:MoveTo(targetPos) [cite: 4]
-            end
-            lastHealth = hum.Health
+        local c = p.Character
+        local h = c and c:FindFirstChildOfClass("Humanoid")
+        local r = c and c:FindFirstChild("HumanoidRootPart")
+        if h and r and h.Health > 0 then
+            local tp = Vector3.new(HP.X, r.Position.Y, HP.Z)
+            if h.Health < lh then r.CFrame = CFrame.new(tp) end [cite: 3, 4]
+            if (r.Position - tp).Magnitude >= RD then h:MoveTo(tp) end [cite: 4]
+            lh = h.Health
         end
     end
 end)
 
--- [[ AUTO PURCHASE - METODE SINYAL (PALING AMAN DARI ERROR NIL) ]]
-if ProximityPromptService then
-    ProximityPromptService.PromptShown:Connect(function(prompt)
-        local model = prompt:FindFirstAncestorOfClass("Model")
-        if model and isTarget(model) then
-            task.wait(0.2)
-            -- Menjalankan simulasi input tanpa memanggil fungsi executor khusus [cite: 5]
-            pcall(function()
-                prompt:InputHoldBegin()
-                task.wait(prompt.HoldDuration + 0.05)
-                prompt:InputHoldEnd()
-            end)
+-- AUTO PURCHASE (Target detection disatukan agar tidak error nil)
+pps.PromptShown:Connect(function(pr)
+    local m = pr:FindFirstAncestorOfClass("Model")
+    if m and getgenv().TARGET_LIST then [cite: 5]
+        local found = false
+        local n = string.lower(m:GetAttribute("Index") or m.Name)
+        for _, t in ipairs(getgenv().TARGET_LIST) do
+            if string.find(n, string.lower(t)) then found = true break end [cite: 2]
         end
-    end)
-end
+        
+        if found then
+            task.wait(0.15)
+            pr:InputHoldBegin()
+            task.wait(pr.HoldDuration + 0.01)
+            pr:InputHoldEnd()
+        end
+    end
+end)
 
--- [[ FITUR AUTO SPEED COIL ]]
+-- AUTO SPEED COIL
 task.spawn(function()
     while task.wait(5) do
-        if not player or not player.Character then continue end
-        local char = player.Character
-        local backpack = player:FindFirstChildOfClass("Backpack")
-        
-        if char and backpack then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            local coil = char:FindFirstChild("Speed Coil") or char:FindFirstChild("Coil")
-            
-            if not coil and hum then
-                for _, tool in ipairs(backpack:GetChildren()) do
-                    if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "speed") or string.find(string.lower(tool.Name), "coil")) then
-                        hum:EquipTool(tool) [cite: 8, 9]
+        local c = p.Character
+        local b = p:FindFirstChildOfClass("Backpack")
+        if c and b then
+            local h = c:FindFirstChildOfClass("Humanoid")
+            local coil = c:FindFirstChild("Speed Coil") or c:FindFirstChild("Coil")
+            if not coil and h then
+                for _, t in ipairs(b:GetChildren()) do
+                    if t:IsA("Tool") and (string.find(string.lower(t.Name), "speed") or string.find(string.lower(t.Name), "coil")) then [cite: 8]
+                        h:EquipTool(t) [cite: 8]
                         break
                     end
                 end
@@ -100,14 +71,4 @@ task.spawn(function()
     end
 end)
 
--- [[ ANTI-AFK (METODE INTERNAL ROBLOX) ]]
-if player then
-    player.Idled:Connect(function()
-        if VirtualUser then
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(Vector2.new(0,0))
-        end
-    end)
-end
-
-print("KAMIAPA: Script Ultra-Safe Loaded!")
+print("KAMIAPA: Minimalist Version Active") [cite: 10]
