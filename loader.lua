@@ -1,39 +1,41 @@
--- KAMIAPA BYPASS VERSION (FULL)
+-- KAMIAPA BYPASS VERSION (HUMANIZED)
 task.spawn(function() 
-    repeat task.wait() until game:IsLoaded()
+    repeat task.wait(math.random(1, 3)) until game:IsLoaded()
     local p = game:GetService("Players").LocalPlayer
-    local vu = game:GetService("VirtualUser")
     local pps = game:GetService("ProximityPromptService")
-    local HP = Vector3.new(-410.2870788574219, -6.403680801391602, -68.40277099609375) -- 
-    local RD = 2
-    local lh = 100
-
-    -- ANTI-AFK SAFE METHOD (Menggantikan VirtualInputManager)
-    p.Idled:Connect(function() 
-        pcall(function() 
-            vu:CaptureController() 
-            vu:ClickButton2(Vector2.new(0,0)) 
-        end) 
+    local HP = Vector3.new(-410.287, -6.403, -68.402) 
+    
+    -- ANTI-AFK HUMANIZED (Gerak kamera sedikit)
+    task.spawn(function()
+        while task.wait(math.random(120, 240)) do -- Gerak tiap 2-4 menit
+            pcall(function()
+                local cam = game.Workspace.CurrentCamera
+                cam.CFrame = cam.CFrame * CFrame.Angles(0, math.rad(math.random(-5, 5)), 0)
+            end)
+        end
     end)
 
-    -- STAY AT HOME & AUTO RETURN
+    -- STAY AT HOME & AUTO RETURN (Humanized MoveTo)
     task.spawn(function() 
-        while task.wait(0.2) do 
+        while task.wait(math.random(1, 2)) do 
             pcall(function() 
                 local c = p.Character
                 local h = c and c:FindFirstChildOfClass("Humanoid")
                 local r = c and c:FindFirstChild("HumanoidRootPart")
+                
                 if h and r and h.Health > 0 then 
-                    local tp = Vector3.new(HP.X, r.Position.Y, HP.Z)
-                    if h.Health < lh then r.CFrame = CFrame.new(tp) end -- Return on hit 
-                    if (r.Position - tp).Magnitude >= RD then h:MoveTo(tp) end -- Keep at pos 
-                    lh = h.Health 
+                    local distance = (r.Position - HP).Magnitude
+                    
+                    -- Bergerak perlahan ke posisi jika jauh
+                    if distance > 5 then 
+                        h:MoveTo(HP)
+                    end
                 end 
             end) 
         end 
     end)
 
-    -- AUTO PURCHASE (Metode Signal untuk cegah Nil Error)
+    -- AUTO PURCHASE (Humanized Delay)
     pps.PromptShown:Connect(function(pr) 
         pcall(function() 
             local m = pr:FindFirstAncestorOfClass("Model")
@@ -44,19 +46,20 @@ task.spawn(function()
                 for _, t in ipairs(targets) do 
                     if string.find(n, string.lower(t)) then isT = true break end 
                 end
+                
                 if isT then 
-                    task.wait(0.15) 
+                    task.wait(math.random(0.5, 1.2)) -- Jeda acak sebelum interaksi
                     pr:InputHoldBegin() 
-                    task.wait(pr.HoldDuration + 0.02) 
+                    task.wait(pr.HoldDuration + math.random(0.1, 0.3)) 
                     pr:InputHoldEnd() 
                 end 
-            end
+            end 
         end) 
     end)
 
     -- AUTO SPEED COIL
     task.spawn(function() 
-        while task.wait(5) do 
+        while task.wait(math.random(10, 20)) do 
             pcall(function() 
                 local c = p.Character
                 local b = p:FindFirstChildOfClass("Backpack")
@@ -66,7 +69,8 @@ task.spawn(function()
                     if not coil and h then 
                         for _, t in ipairs(b:GetChildren()) do 
                             if t:IsA("Tool") and (string.find(string.lower(t.Name), "speed") or string.find(string.lower(t.Name), "coil")) then 
-                                h:EquipTool(t) -- Equip otomatis 
+                                task.wait(math.random(0.5, 1))
+                                h:EquipTool(t) 
                                 break 
                             end 
                         end 
@@ -76,5 +80,5 @@ task.spawn(function()
         end 
     end)
 
-    print("KAMIAPA: Script Loaded - Anti-AFK & Anti-Nil Active")
+    print("KAMIAPA: Humanized Script Loaded - Good Luck")
 end)
